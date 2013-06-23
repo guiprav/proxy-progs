@@ -1,2 +1,4 @@
 i.*
 *.log
+node_modules
+
