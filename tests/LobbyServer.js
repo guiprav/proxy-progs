@@ -33,6 +33,23 @@ vows.describe('Lobby').addBatch
 					socket_on.getCallsWith('connection', Anything).length, 1,
 					'there should be exactly one connection handler'
 				);
+			},
+
+			'should handle a single message command': function (lobby)
+			{
+				var event_registration_call = lobby.socket.on.getCallsWith('connection', Anything)[0];
+				var event_handler = event_registration_call[1];
+
+				var client_socket = new SuperMock({ mockName: 'client_socket' });
+				event_handler(client_socket);
+
+				var call_count = client_socket.once.getCallsWith('message', Anything).length;
+
+				assert.equal
+				(
+					call_count, 1,
+					'there should be exactly one message handler (got ' + call_count + ')'
+				);
 			}
 		}
 	}

@@ -8,6 +8,12 @@ module.exports = function LobbyServer ()
 	(
 		'connection', function (client_socket)
 		{
+			client_socket.once
+			(
+				'message', function (message)
+				{
+				}
+			);
 		}
 	);
 };
