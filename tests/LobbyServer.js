@@ -2,6 +2,8 @@ var vows = require('vows');
 var assert = require('assert');
 
 var SuperMock = require('supermock').SuperMock;
+var Anything = SuperMock.Anything;
+
 var patch = require('supermock').patch;
 
 var WS = patch('ws');
@@ -20,6 +22,17 @@ vows.describe('Lobby').addBatch
 			{
 				assert.notEqual(lobby.socket, null);
 				assert.equal(lobby.socket.getName(), 'WS.Server()');
+			},
+
+			'should handle incoming connections': function (lobby)
+			{
+				var socket_on = lobby.socket.on;
+
+				assert.equal
+				(
+					socket_on.getCallsWith('connection', Anything).length, 1,
+					'there should be exactly one connection handler'
+				);
 			}
 		}
 	}
