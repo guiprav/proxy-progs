@@ -35,6 +35,6 @@
 	"devDependencies":
 	{
 		"vows": "0.7.x",
-		"supermock": "https://github.com/n2liquid/supermock.git"
+		"supermock": "https://github.com/n2liquid/supermock/tarball/master"
 	}
 }
