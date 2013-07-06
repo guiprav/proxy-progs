@@ -7,7 +7,7 @@
 
 	"description": "Proxy programs for personal use.",
 
-	"keywords": [ "proxy", "http" ],
+	"keywords": [ "proxy", "tcp", "http" ],
 
 	"repository":
 	{
