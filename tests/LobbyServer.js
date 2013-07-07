@@ -76,7 +76,12 @@ vows.describe('A LobbyServer').addBatch
 
 				// test 'once' handler registration
 				var once = s.stub();
-				var client_socket = { once: once, close: function () {} };
+
+				var client_socket =
+				{
+					once: once,
+					close: function () {}
+				};
 
 				lobby.on_connect(client_socket);
 
