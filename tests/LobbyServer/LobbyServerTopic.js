@@ -25,7 +25,7 @@ util.inherits(LobbyServerTopic, Topic);
 
 LobbyServerTopic.prototype.create_lobby = function ()
 {
-	this.lobby = require_inject_create('src/LobbyServer', this.di);
+	this.lobby = require_inject_create('src/LobbyServer', this.di, 5555);
 };
 
 module.exports = LobbyServerTopic;

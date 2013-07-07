@@ -26,12 +26,13 @@ vows.describe('A LobbyServer').addBatch
 				);
 			},
 
-			'creates a new WebSocket server': function (topic)
+			'creates a new WebSocket server on the specified port': function (topic)
 			{
 				var WS = topic.di.WS;
 
 				s.assert.calledOnce(WS.Server);
 				s.assert.calledWithNew(WS.Server);
+				s.assert.calledWithExactly(WS.Server, s.match({ port: 5555 }));
 			},
 
 			'starts listening for connections': function (topic)
@@ -40,7 +41,10 @@ vows.describe('A LobbyServer').addBatch
 				var on = topic.server_socket.on;
 
 				s.assert.calledOnce(on);
-				s.assert.calledWithExactly(on, 'connection', lobby.on_connect);
+				s.assert.calledWithExactly(on, 'connection', s.match.func);
+
+				// TODO: find a way to make sure the connection handler
+				// calls lobby.on_connect
 			}
 		},
 
@@ -73,7 +77,12 @@ vows.describe('A LobbyServer').addBatch
 
 				// test 'once' handler registration
 				var once = s.stub();
-				var client_socket = { once: once, close: function () {} };
+
+				var client_socket =
+				{
+					once: once,
+					close: function () {}
+				};
 
 				lobby.on_connect(client_socket);
 
@@ -213,22 +222,19 @@ vows.describe('A LobbyServer').addBatch
 			{
 				var lobby = topic.lobby;
 
-				var message_a =
-				{
-					endpoint_id: 'test-a'
-				};
+				var socket_a = {};
+				var socket_b = {};
 
-				lobby.on_announce_message({}, message_a);
+				lobby.on_announce_message(socket_a, { endpoint_id: 'test-a' });
+				lobby.on_announce_message(socket_b, { endpoint_id: 'test-b' });
 
-				var message_b =
-				{
-					endpoint_id: 'test-b'
-				};
+				var endpoint_a = lobby.endpoint('test-a');
+				var endpoint_b = lobby.endpoint('test-b');
 
-				lobby.on_announce_message({}, message_b);
-
-				assert.isObject(lobby.endpoint('test-a'));
-				assert.isObject(lobby.endpoint('test-b'));
+				assert.isObject(endpoint_a);
+				assert.equal(endpoint_a.socket, socket_a);
+				assert.isObject(endpoint_b);
+				assert.equal(endpoint_b.socket, socket_b);
 			},
 
 			'whose getter throws if the ID is not announced': function (topic)
@@ -241,6 +247,214 @@ vows.describe('A LobbyServer').addBatch
 					},
 
 					ReferenceError
+				);
+			},
+
+			'which cannot have duplicate IDs': function (topic)
+			{
+				var lobby = topic.lobby;
+
+				var close = s.stub();
+				var client_socket = { close: close };
+
+				lobby.on_announce_message({}, { endpoint_id: 'test' });
+				lobby.on_announce_message(client_socket, { endpoint_id: 'test' });
+
+				s.assert.calledOnce(close);
+
+				s.assert.calledWithExactly
+				(
+					close, JSON.stringify
+					({
+						error: 'endpoint-already-announced'
+					})
+				);
+			}
+		},
+
+		'has a connect command handler':
+		{
+			topic: function ()
+			{
+				safe_topic_setup.call
+				(
+					this, function ()
+					{
+						var topic = new LobbyServerTopic();
+						topic.create_lobby();
+
+						// mock an endpoint announcement
+						topic.lobby.on_announce_message({}, { endpoint_id: 'prepared-1' });
+						topic.lobby.on_announce_message({}, { endpoint_id: 'prepared-2' });
+						topic.lobby.on_announce_message({}, { endpoint_id: 'prepared-3' });
+
+						return topic;
+					}
+				);
+			},
+
+			'which connects clients to announced endpoints': function (topic)
+			{
+				var lobby = topic.lobby;
+
+				var endpoint_id = 'prepared-1';
+
+				var endpoint =
+				{
+					socket:
+					{
+						send: function () {},
+						on: function () {}
+					}
+				};
+
+				var endpoint_send = s.stub(endpoint.socket, 'send');
+
+				var endpoint_getter = s.stub(lobby, 'endpoint').returns(endpoint);
+
+				var client_socket =
+				{
+					send: function () {},
+					on: function () {}
+				};
+
+				var client_send = s.stub(client_socket, 'send');
+
+				lobby.on_connect_message(client_socket, { endpoint_id: endpoint_id });
+
+				s.assert.calledOnce(endpoint_getter);
+				s.assert.calledWithExactly(endpoint_getter, endpoint_id);
+
+				s.assert.calledOnce(endpoint_send);
+
+				s.assert.calledWithExactly
+				(
+					endpoint_send, JSON.stringify
+					({
+						'event': 'connected'
+					})
+				);
+
+				s.assert.calledOnce(client_send);
+
+				s.assert.calledWithExactly
+				(
+					client_send, JSON.stringify
+					({
+						'event': 'connected'
+					})
+				);
+
+				endpoint_getter.restore();
+			},
+
+			'which sets up message relaying for connected endpoints': function (topic)
+			{
+				var lobby = topic.lobby;
+
+				var endpoint =
+				{
+					socket:
+					{
+						send: function () {},
+						on: function () {}
+					}
+				};
+
+				var endpoint_socket_send = s.stub(endpoint.socket, 'send');
+				var endpoint_socket_on = s.stub(endpoint.socket, 'on');
+
+				var proper_endpoint_getter = lobby.endpoint;
+				lobby.endpoint = function () { return endpoint; };
+
+				var client_socket =
+				{
+					send: function () {},
+					on: function () {}
+				};
+
+				var client_socket_send = s.stub(client_socket, 'send');
+				var client_socket_on = s.stub(client_socket, 'on');
+
+				lobby.on_connect_message(client_socket, { endpoint_id: 'prepared-2' });
+
+				lobby.endpoint = proper_endpoint_getter;
+
+				// reset spy state, we don't care about previous calls
+				client_socket_send.reset();
+				endpoint_socket_send.reset();
+
+				function test_relaying (sending_peer_on, receiving_peer_send)
+				{
+					var message = 'What is this program? A miserable little pile of tests!';
+
+					s.assert.calledOnce(sending_peer_on);
+					s.assert.calledWithExactly(sending_peer_on, 'message', s.match.func);
+
+					var on_message_handler = sending_peer_on.lastCall.args[1];
+
+					on_message_handler(message);
+
+					s.assert.calledOnce(receiving_peer_send);
+					s.assert.calledWithExactly(receiving_peer_send, message);
+				}
+
+				// endpoint -> client
+				test_relaying(endpoint_socket_on, client_socket_send);
+
+				// client -> endpoint
+				test_relaying(client_socket_on, endpoint_socket_send);
+			},
+
+			'which frees up connected endpoint IDs': function (topic)
+			{
+				var lobby = topic.lobby;
+
+				var subject_endpoint_id = 'prepared-3';
+
+				assert.doesNotThrow
+				(
+					function ()
+					{
+						lobby.endpoint(subject_endpoint_id);
+					},
+
+					ReferenceError,
+
+					'Endpoint is not announced.'
+				);
+
+				var endpoint =
+				{
+					socket:
+					{
+						send: function () {},
+						on: function () {}
+					}
+				};
+
+				var endpoint_getter = s.stub(lobby, 'endpoint').returns(endpoint);
+
+				var client_socket =
+				{
+					send: function () {},
+					on: function () {}
+				};
+
+				lobby.on_connect_message(client_socket, { endpoint_id: subject_endpoint_id });
+
+				endpoint_getter.restore();
+
+				assert.throws
+				(
+					function ()
+					{
+						lobby.endpoint(subject_endpoint_id);
+					},
+
+					ReferenceError,
+
+					'Endpoint is still announced.'
 				);
 			}
 		}
