@@ -242,6 +242,32 @@ vows.describe('A LobbyServer').addBatch
 
 					ReferenceError
 				);
+			},
+
+			'which cannot have duplicate IDs': function (topic)
+			{
+				var lobby = topic.lobby;
+
+				var close = s.stub();
+				var client_socket = { close: close };
+
+				var message =
+				{
+					endpoint_id: 'test'
+				};
+
+				lobby.on_announce_message(client_socket, message);
+				lobby.on_announce_message(client_socket, message);
+
+				s.assert.calledOnce(close);
+
+				s.assert.calledWithExactly
+				(
+					close, JSON.stringify
+					({
+						error: 'endpoint-already-announced'
+					})
+				);
 			}
 		}
 	}

@@ -52,6 +52,17 @@ module.exports = function (di)
 
 	LobbyServer.prototype.on_announce_message = function (client_socket, message)
 	{
+		if (this.endpoints[message.endpoint_id] !== undefined)
+		{
+			client_socket.close
+			(
+				JSON.stringify
+				({
+					error: 'endpoint-already-announced'
+				})
+			);
+		}
+
 		this.endpoints[message.endpoint_id] = {};
 	};
 
