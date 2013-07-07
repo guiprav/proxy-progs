@@ -12,7 +12,7 @@ module.exports = function (di)
 		this.socket = new WS.Server();
 		this.socket.on('connection', this.on_connect);
 
-		this.endpoints = [];
+		this.endpoints = {};
 	};
 
 	LobbyServer.prototype.endpoint = function (id)
