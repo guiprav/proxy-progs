@@ -69,13 +69,29 @@ vows.describe('A LobbyServer').addBatch
 			{
 				var lobby = t.lobby;
 
+				var on_message = s.stub(lobby, 'on_message');
+
+				// test 'once' handler registration
 				var once = s.stub();
-				var client_socket = { once: once };
-				
+				var client_socket = { once: once, close: function () {} };
+
 				lobby.on_connect(client_socket);
 
 				s.assert.calledOnce(once);
-				s.assert.calledWithExactly(once, 'message', lobby.on_message);
+				s.assert.calledWithExactly(once, 'message', s.match.func);
+
+				// test handler call to lobby.on_message
+				var message = '{}';
+				var handler = once.lastCall.args[1];
+
+				handler(message);
+
+				s.assert.calledOnce(on_message);
+
+				// test handler call forwards right arguments
+				s.assert.calledWithExactly(on_message, client_socket, message);
+
+				on_message.restore();
 			}
 		},
 
