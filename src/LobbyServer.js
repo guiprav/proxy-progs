@@ -10,7 +10,7 @@ module.exports = function (di)
 	function LobbyServer ()
 	{
 		this.socket = new WS.Server();
-		this.socket.on('connection', this.on_connect);
+		this.socket.on('connection', this.on_connect.bind(this));
 
 		this.endpoints = {};
 	};
