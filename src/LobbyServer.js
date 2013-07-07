@@ -15,7 +15,7 @@ module.exports = function (di)
 
 	LobbyServer.prototype.on_connect = function (client_socket)
 	{
-		client_socket.once('message', this.on_message);
+		client_socket.once('message', this.on_message.bind(this, client_socket));
 	};
 
 	LobbyServer.prototype.on_message = function (client_socket, message)
@@ -25,11 +25,11 @@ module.exports = function (di)
 		switch (message.command)
 		{
 			case 'announce':
-				this.on_announce_message();
+				this.on_announce_message(client_socket, message);
 				break;
 
 			case 'connect':
-				this.on_connect_message();
+				this.on_connect_message(client_socket, message);
 				break;
 
 			default:
