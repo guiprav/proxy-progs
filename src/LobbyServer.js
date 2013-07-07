@@ -6,6 +6,7 @@ module.exports = function (di)
 
 	// load dependencies
 	var WS = (di.WS !== undefined)? di.WS : require('ws');
+	var log = (di.log !== undefined)? di.log : console.log;
 
 	function LobbyServer (port)
 	{
@@ -13,6 +14,8 @@ module.exports = function (di)
 		this.socket.on('connection', this.on_connect.bind(this));
 
 		this.endpoints = {};
+
+		log('Listening on port ' + port + '.');
 	};
 
 	LobbyServer.prototype.endpoint = function (id)
@@ -28,6 +31,8 @@ module.exports = function (di)
 	LobbyServer.prototype.on_connect = function (client_socket)
 	{
 		client_socket.once('message', this.on_message.bind(this, client_socket));
+
+		log('Client connected.');
 	};
 
 	LobbyServer.prototype.on_message = function (client_socket, message)
@@ -52,7 +57,9 @@ module.exports = function (di)
 
 	LobbyServer.prototype.on_announce_message = function (client_socket, message)
 	{
-		if (this.endpoints[message.endpoint_id] !== undefined)
+		var endpoint_id = message.endpoint_id;
+
+		if (this.endpoints[endpoint_id] !== undefined)
 		{
 			client_socket.close
 			(
@@ -61,9 +68,14 @@ module.exports = function (di)
 					error: 'endpoint-already-announced'
 				})
 			);
+
+			log('Client tried to announce endpoint "' + endpoint_id + "', but it was already announced.");
+			log('Client disconnected.');
 		}
 
-		this.endpoints[message.endpoint_id] = { socket: client_socket };
+		this.endpoints[endpoint_id] = { socket: client_socket };
+
+		log('Endpoint "' + endpoint_id + '" announced.');
 	};
 
 	LobbyServer.prototype.on_connect_message = function (client_socket, message)
@@ -97,6 +109,8 @@ module.exports = function (di)
 		);
 
 		delete this.endpoints[endpoint_id];
+
+		log('Endpoint "' + endpoint_id + '" bound to client.');
 	};
 
 	return LobbyServer;

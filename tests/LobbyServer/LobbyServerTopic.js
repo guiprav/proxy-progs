@@ -9,6 +9,9 @@ function LobbyServerTopic ()
 {
 	Topic.call(this);
 
+	// suppress log messages
+	this.di.log = function () {};
+
 	// basic stubbing of WS module
 	this.server_socket =
 	{
