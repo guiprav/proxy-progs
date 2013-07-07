@@ -191,6 +191,58 @@ vows.describe('A LobbyServer').addBatch
 
 				s.assert.calledOnce(close);
 			}
+		},
+
+		'has announced endpoints':
+		{
+			topic: function ()
+			{
+				safe_topic_setup.call
+				(
+					this, function ()
+					{
+						var topic = new LobbyServerTopic();
+						topic.create_lobby();
+
+						return topic;
+					}
+				);
+			},
+
+			'created when clients announce': function (topic)
+			{
+				var lobby = topic.lobby;
+
+				var message_a =
+				{
+					endpoint_id: 'test-a'
+				};
+
+				lobby.on_announce_message({}, message_a);
+
+				var message_b =
+				{
+					endpoint_id: 'test-b'
+				};
+
+				lobby.on_announce_message({}, message_b);
+
+				assert.isObject(lobby.endpoint('test-a'));
+				assert.isObject(lobby.endpoint('test-b'));
+			},
+
+			'whose getter throws if the ID is not announced': function (topic)
+			{
+				assert.throws
+				(
+					function ()
+					{
+						topic.lobby.endpoint('*unannounced-id*');
+					},
+
+					ReferenceError
+				);
+			}
 		}
 	}
 ).export(module);
