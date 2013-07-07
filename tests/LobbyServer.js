@@ -213,19 +213,8 @@ vows.describe('A LobbyServer').addBatch
 			{
 				var lobby = topic.lobby;
 
-				var message_a =
-				{
-					endpoint_id: 'test-a'
-				};
-
-				lobby.on_announce_message({}, message_a);
-
-				var message_b =
-				{
-					endpoint_id: 'test-b'
-				};
-
-				lobby.on_announce_message({}, message_b);
+				lobby.on_announce_message({}, { endpoint_id: 'test-a' });
+				lobby.on_announce_message({}, { endpoint_id: 'test-b' });
 
 				assert.isObject(lobby.endpoint('test-a'));
 				assert.isObject(lobby.endpoint('test-b'));
@@ -251,13 +240,8 @@ vows.describe('A LobbyServer').addBatch
 				var close = s.stub();
 				var client_socket = { close: close };
 
-				var message =
-				{
-					endpoint_id: 'test'
-				};
-
-				lobby.on_announce_message(client_socket, message);
-				lobby.on_announce_message(client_socket, message);
+				lobby.on_announce_message({}, { endpoint_id: 'test' });
+				lobby.on_announce_message(client_socket, { endpoint_id: 'test' });
 
 				s.assert.calledOnce(close);
 
