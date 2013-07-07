@@ -321,6 +321,53 @@ vows.describe('A LobbyServer').addBatch
 				);
 
 				endpoint_getter.restore();
+			},
+
+			'which frees up connected endpoint IDs': function (topic)
+			{
+				var lobby = topic.lobby;
+
+				var subject_endpoint_id = 'test-2';
+
+				assert.doesNotThrow
+				(
+					function ()
+					{
+						lobby.endpoint(subject_endpoint_id);
+					},
+
+					ReferenceError,
+
+					'Endpoint is not announced.'
+				);
+
+				var endpoint =
+				{
+					socket:
+					{
+						send: function () {}
+					}
+				};
+
+				var endpoint_getter = s.stub(lobby, 'endpoint').returns(endpoint);
+
+				var client_socket = { send: function () {} };
+
+				lobby.on_connect_message(client_socket, { endpoint_id: subject_endpoint_id });
+
+				endpoint_getter.restore();
+
+				assert.throws
+				(
+					function ()
+					{
+						lobby.endpoint(subject_endpoint_id);
+					},
+
+					ReferenceError,
+
+					'Endpoint is still announced.'
+				);
 			}
 		}
 	}

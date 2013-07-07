@@ -79,6 +79,8 @@ module.exports = function (di)
 
 		endpoint.socket.send(connected_event_message);
 		client_socket.send(connected_event_message);
+
+		delete this.endpoints[endpoint_id];
 	};
 
 	return LobbyServer;
