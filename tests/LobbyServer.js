@@ -70,7 +70,6 @@ vows.describe('A LobbyServer').addBatch
 				var lobby = t.lobby;
 
 				var once = s.stub();
-
 				var client_socket = { once: once };
 				
 				lobby.on_connect(client_socket);
@@ -101,7 +100,7 @@ vows.describe('A LobbyServer').addBatch
 				assert(typeof t.lobby.on_message === 'function', 'on_message must be a function');
 			},
 
-			'which handles "announce" messages': function (t)
+			'which handles "announce" commands': function (t)
 			{
 				var lobby = t.lobby;
 
@@ -120,7 +119,7 @@ vows.describe('A LobbyServer').addBatch
 				on_announce_message.restore();
 			},
 
-			'which handles "connect" messages': function (t)
+			'which handles "connect" commands': function (t)
 			{
 				var lobby = t.lobby;
 
