@@ -18,7 +18,7 @@ module.exports = function (di)
 		client_socket.once('message', this.on_message);
 	};
 
-	LobbyServer.prototype.on_message = function (message)
+	LobbyServer.prototype.on_message = function (client_socket, message)
 	{
 		message = JSON.parse(message);
 
@@ -30,6 +30,10 @@ module.exports = function (di)
 
 			case 'connect':
 				this.on_connect_message();
+				break;
+
+			default:
+				client_socket.close();
 				break;
 		}
 	};

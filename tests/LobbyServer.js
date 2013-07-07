@@ -106,13 +106,12 @@ vows.describe('A LobbyServer').addBatch
 
 				var on_announce_message = s.stub(lobby, 'on_announce_message');
 
-				lobby.on_message
-				(
-					JSON.stringify
-					({
-						command: 'announce'
-					})
-				);
+				var message = JSON.stringify
+				({
+					command: 'announce'
+				});
+
+				lobby.on_message(null, message);
 
 				s.assert.calledOnce(on_announce_message);
 
@@ -125,17 +124,34 @@ vows.describe('A LobbyServer').addBatch
 
 				var on_connect_message = s.stub(lobby, 'on_connect_message');
 
-				lobby.on_message
-				(
-					JSON.stringify
-					({
-						command: 'connect'
-					})
-				);
+				var message = JSON.stringify
+				({
+					command: 'connect'
+				});
+
+				lobby.on_message(null, message);
 
 				s.assert.calledOnce(on_connect_message);
 
 				on_connect_message.restore();
+			},
+
+			'which disconnects clients that send unsupported commands': function (t)
+			{
+				var lobby = t.lobby;
+
+				var close = s.stub();
+				var client_socket = { close: close };
+
+				lobby.on_message
+				(
+					client_socket, JSON.stringify
+					({
+						command: '*unsupported*'
+					})
+				);
+
+				s.assert.calledOnce(close);
 			}
 		}
 	}
