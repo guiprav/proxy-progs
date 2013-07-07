@@ -229,6 +229,19 @@ vows.describe('A LobbyServer').addBatch
 
 				assert.isObject(lobby.endpoint('test-a'));
 				assert.isObject(lobby.endpoint('test-b'));
+			},
+
+			'whose getter throws if the ID is not announced': function (topic)
+			{
+				assert.throws
+				(
+					function ()
+					{
+						topic.lobby.endpoint('*unannounced-id*');
+					},
+
+					ReferenceError
+				);
 			}
 		}
 	}

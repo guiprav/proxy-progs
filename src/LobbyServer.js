@@ -17,6 +17,11 @@ module.exports = function (di)
 
 	LobbyServer.prototype.endpoint = function (id)
 	{
+		if (this.endpoints[id] === undefined)
+		{
+			throw new ReferenceError('Endpoint not announced in lobby.');
+		}
+
 		return this.endpoints[id];
 	};
 
