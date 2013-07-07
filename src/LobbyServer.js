@@ -114,7 +114,7 @@ module.exports = function (di)
 
 		delete this.endpoints[endpoint_id];
 
-		log('Endpoint "' + endpoint_id + '" bound to client.');
+		log('Endpoint "' + endpoint_id + '" bound to a client.');
 	};
 
 	return LobbyServer;
