@@ -7,9 +7,9 @@ module.exports = function (di)
 	// load dependencies
 	var WS = (di.WS !== undefined)? di.WS : require('ws');
 
-	function LobbyServer ()
+	function LobbyServer (port)
 	{
-		this.socket = new WS.Server();
+		this.socket = new WS.Server({ port: port });
 		this.socket.on('connection', this.on_connect.bind(this));
 
 		this.endpoints = {};

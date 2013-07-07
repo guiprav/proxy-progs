@@ -26,12 +26,13 @@ vows.describe('A LobbyServer').addBatch
 				);
 			},
 
-			'creates a new WebSocket server': function (topic)
+			'creates a new WebSocket server on the specified port': function (topic)
 			{
 				var WS = topic.di.WS;
 
 				s.assert.calledOnce(WS.Server);
 				s.assert.calledWithNew(WS.Server);
+				s.assert.calledWithExactly(WS.Server, s.match({ port: 5555 }));
 			},
 
 			'starts listening for connections': function (topic)
