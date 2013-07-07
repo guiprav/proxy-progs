@@ -26,18 +26,18 @@ vows.describe('A LobbyServer').addBatch
 				);
 			},
 
-			'creates a new WebSocket server': function (t)
+			'creates a new WebSocket server': function (topic)
 			{
-				var WS = t.di.WS;
+				var WS = topic.di.WS;
 
 				s.assert.calledOnce(WS.Server);
 				s.assert.calledWithNew(WS.Server);
 			},
 
-			'starts listening for connections': function (t)
+			'starts listening for connections': function (topic)
 			{
-				var lobby = t.lobby;
-				var on = t.server_socket.on;
+				var lobby = topic.lobby;
+				var on = topic.server_socket.on;
 
 				s.assert.calledOnce(on);
 				s.assert.calledWithExactly(on, 'connection', lobby.on_connect);
@@ -60,14 +60,14 @@ vows.describe('A LobbyServer').addBatch
 				);
 			},
 
-			'which is a function': function (t)
+			'which is a function': function (topic)
 			{
-				assert(typeof t.lobby.on_connect === 'function', 'on_connect must be a function');
+				assert(typeof topic.lobby.on_connect === 'function', 'on_connect must be a function');
 			},
 
-			'which handles a single client socket message': function (t)
+			'which handles a single client socket message': function (topic)
 			{
-				var lobby = t.lobby;
+				var lobby = topic.lobby;
 
 				var on_message = s.stub(lobby, 'on_message');
 
@@ -111,14 +111,14 @@ vows.describe('A LobbyServer').addBatch
 				);
 			},
 
-			'which is a function': function (t)
+			'which is a function': function (topic)
 			{
-				assert(typeof t.lobby.on_message === 'function', 'on_message must be a function');
+				assert(typeof topic.lobby.on_message === 'function', 'on_message must be a function');
 			},
 
-			'which handles "announce" commands': function (t)
+			'which handles "announce" commands': function (topic)
 			{
-				var lobby = t.lobby;
+				var lobby = topic.lobby;
 
 				var on_announce_message = s.stub(lobby, 'on_announce_message');
 
@@ -137,9 +137,9 @@ vows.describe('A LobbyServer').addBatch
 				on_announce_message.restore();
 			},
 
-			'which handles "connect" commands': function (t)
+			'which handles "connect" commands': function (topic)
 			{
-				var lobby = t.lobby;
+				var lobby = topic.lobby;
 
 				var on_connect_message = s.stub(lobby, 'on_connect_message');
 
@@ -158,9 +158,9 @@ vows.describe('A LobbyServer').addBatch
 				on_connect_message.restore();
 			},
 
-			'which disconnects clients that send unsupported commands': function (t)
+			'which disconnects clients that send unsupported commands': function (topic)
 			{
-				var lobby = t.lobby;
+				var lobby = topic.lobby;
 
 				var close = s.stub();
 				var client_socket = { close: close };
