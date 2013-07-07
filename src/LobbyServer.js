@@ -11,6 +11,13 @@ module.exports = function (di)
 	{
 		this.socket = new WS.Server();
 		this.socket.on('connection', this.on_connect);
+
+		this.endpoints = [];
+	};
+
+	LobbyServer.prototype.endpoint = function (id)
+	{
+		return this.endpoints[id];
 	};
 
 	LobbyServer.prototype.on_connect = function (client_socket)
@@ -38,8 +45,9 @@ module.exports = function (di)
 		}
 	};
 
-	LobbyServer.prototype.on_announce_message = function ()
+	LobbyServer.prototype.on_announce_message = function (client_socket, message)
 	{
+		this.endpoints[message.endpoint_id] = {};
 	};
 
 	LobbyServer.prototype.on_connect_message = function ()
