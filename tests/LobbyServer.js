@@ -283,8 +283,9 @@ vows.describe('A LobbyServer').addBatch
 						topic.create_lobby();
 
 						// mock an endpoint announcement
-						topic.lobby.on_announce_message({}, { endpoint_id: 'test-1' });
-						topic.lobby.on_announce_message({}, { endpoint_id: 'test-2' });
+						topic.lobby.on_announce_message({}, { endpoint_id: 'prepared-1' });
+						topic.lobby.on_announce_message({}, { endpoint_id: 'prepared-2' });
+						topic.lobby.on_announce_message({}, { endpoint_id: 'prepared-3' });
 
 						return topic;
 					}
@@ -294,6 +295,8 @@ vows.describe('A LobbyServer').addBatch
 			'which connects clients to announced endpoints': function (topic)
 			{
 				var lobby = topic.lobby;
+
+				var endpoint_id = 'prepared-1';
 
 				var endpoint =
 				{
@@ -311,10 +314,10 @@ vows.describe('A LobbyServer').addBatch
 
 				var client_send = s.stub(client_socket, 'send');
 
-				lobby.on_connect_message(client_socket, { endpoint_id: 'test-1' });
+				lobby.on_connect_message(client_socket, { endpoint_id: endpoint_id });
 
 				s.assert.calledOnce(endpoint_getter);
-				s.assert.calledWithExactly(endpoint_getter, 'test-1');
+				s.assert.calledWithExactly(endpoint_getter, endpoint_id);
 
 				s.assert.calledOnce(endpoint_send);
 
@@ -343,7 +346,7 @@ vows.describe('A LobbyServer').addBatch
 			{
 				var lobby = topic.lobby;
 
-				var subject_endpoint_id = 'test-2';
+				var subject_endpoint_id = 'prepared-3';
 
 				assert.doesNotThrow
 				(
