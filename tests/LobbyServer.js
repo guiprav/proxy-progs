@@ -1,55 +1,142 @@
-var vows = require('vows');
+'use strict';
+
 var assert = require('assert');
+var vows = require('vows');
+var s = require('sinon');
 
-var SuperMock = require('supermock').SuperMock;
-var Anything = SuperMock.Anything;
+var LobbyServerTopic = require('./LobbyServer/LobbyServerTopic');
+var safe_topic_setup = require('./common/safe_topic_setup');
 
-var patch = require('supermock').patch;
-
-var WS = patch('ws');
-WS.Server = new SuperMock({ mockName: 'WS.Server' });
-
-var LobbyServer = require('../src/LobbyServer');
-
-vows.describe('Lobby').addBatch
+vows.describe('A LobbyServer').addBatch
 (
 	{
-		'A Lobby Server':
+		'during bootstrap':
 		{
-			topic: new LobbyServer(),
-
-			'should have a server socket': function (lobby)
+			topic: function ()
 			{
-				assert.notEqual(lobby.socket, null);
-				assert.equal(lobby.socket.getName(), 'WS.Server()');
-			},
-
-			'should handle incoming connections': function (lobby)
-			{
-				var socket_on = lobby.socket.on;
-
-				assert.equal
+				safe_topic_setup.call
 				(
-					socket_on.getCallsWith('connection', Anything).length, 1,
-					'there should be exactly one connection handler'
+					this, function ()
+					{
+						var topic = new LobbyServerTopic();
+						topic.create_lobby();
+
+						return topic;
+					}
 				);
 			},
 
-			'should handle a single message command': function (lobby)
+			'creates a new WebSocket server': function (t)
 			{
-				var event_registration_call = lobby.socket.on.getCallsWith('connection', Anything)[0];
-				var event_handler = event_registration_call[1];
+				var WS = t.di.WS;
 
-				var client_socket = new SuperMock({ mockName: 'client_socket' });
-				event_handler(client_socket);
+				s.assert.calledOnce(WS.Server);
+				s.assert.calledWithNew(WS.Server);
+			},
 
-				var call_count = client_socket.once.getCallsWith('message', Anything).length;
+			'starts listening for connections': function (t)
+			{
+				var lobby = t.lobby;
+				var on = t.server_socket.on;
 
-				assert.equal
+				s.assert.calledOnce(on);
+				s.assert.calledWithExactly(on, 'connection', lobby.on_connect);
+			}
+		},
+
+		'has a connection handler':
+		{
+			topic: function ()
+			{
+				safe_topic_setup.call
 				(
-					call_count, 1,
-					'there should be exactly one message handler (got ' + call_count + ')'
+					this, function ()
+					{
+						var topic = new LobbyServerTopic();
+						topic.create_lobby();
+
+						return topic;
+					}
 				);
+			},
+
+			'which is a function': function (t)
+			{
+				assert(typeof t.lobby.on_connect === 'function', 'on_connect must be a function');
+			},
+
+			'which handles a single client socket message': function (t)
+			{
+				var lobby = t.lobby;
+
+				var once = s.stub();
+
+				var client_socket = { once: once };
+				
+				lobby.on_connect(client_socket);
+
+				s.assert.calledOnce(once);
+				s.assert.calledWithExactly(once, 'message', lobby.on_message);
+			}
+		},
+
+		'has a message handler':
+		{
+			topic: function ()
+			{
+				safe_topic_setup.call
+				(
+					this, function ()
+					{
+						var topic = new LobbyServerTopic();
+						topic.create_lobby();
+
+						return topic;
+					}
+				);
+			},
+
+			'which is a function': function (t)
+			{
+				assert(typeof t.lobby.on_message === 'function', 'on_message must be a function');
+			},
+
+			'which handles "announce" messages': function (t)
+			{
+				var lobby = t.lobby;
+
+				var on_announce_message = s.stub(lobby, 'on_announce_message');
+
+				lobby.on_message
+				(
+					JSON.stringify
+					({
+						command: 'announce'
+					})
+				);
+
+				s.assert.calledOnce(on_announce_message);
+
+				on_announce_message.restore();
+			},
+
+			'which handles "connect" messages': function (t)
+			{
+				var lobby = t.lobby;
+
+				var on_connect_message = s.stub(lobby, 'on_connect_message');
+
+				lobby.on_message
+				(
+					JSON.stringify
+					({
+						command: 'connect'
+					})
+				);
+
+				s.assert.calledOnce(on_connect_message);
+
+				on_connect_message.restore();
 			}
 		}
 	}
