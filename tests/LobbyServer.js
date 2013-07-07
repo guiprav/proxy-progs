@@ -302,7 +302,8 @@ vows.describe('A LobbyServer').addBatch
 				{
 					socket:
 					{
-						send: function () {}
+						send: function () {},
+						on: function () {}
 					}
 				};
 
@@ -310,7 +311,11 @@ vows.describe('A LobbyServer').addBatch
 
 				var endpoint_getter = s.stub(lobby, 'endpoint').returns(endpoint);
 
-				var client_socket = { send: function () {} };
+				var client_socket =
+				{
+					send: function () {},
+					on: function () {}
+				};
 
 				var client_send = s.stub(client_socket, 'send');
 
@@ -342,6 +347,64 @@ vows.describe('A LobbyServer').addBatch
 				endpoint_getter.restore();
 			},
 
+			'which sets up message relaying for connected endpoints': function (topic)
+			{
+				var lobby = topic.lobby;
+
+				var endpoint =
+				{
+					socket:
+					{
+						send: function () {},
+						on: function () {}
+					}
+				};
+
+				var endpoint_socket_send = s.stub(endpoint.socket, 'send');
+				var endpoint_socket_on = s.stub(endpoint.socket, 'on');
+
+				var proper_endpoint_getter = lobby.endpoint;
+				lobby.endpoint = function () { return endpoint; };
+
+				var client_socket =
+				{
+					send: function () {},
+					on: function () {}
+				};
+
+				var client_socket_send = s.stub(client_socket, 'send');
+				var client_socket_on = s.stub(client_socket, 'on');
+
+				lobby.on_connect_message(client_socket, { endpoint_id: 'prepared-2' });
+
+				lobby.endpoint = proper_endpoint_getter;
+
+				// reset spy state, we don't care about previous calls
+				client_socket_send.reset();
+				endpoint_socket_send.reset();
+
+				function test_relaying (sending_peer_on, receiving_peer_send)
+				{
+					var message = 'What is this program? A miserable little pile of tests!';
+
+					s.assert.calledOnce(sending_peer_on);
+					s.assert.calledWithExactly(sending_peer_on, 'message', s.match.func);
+
+					var on_message_handler = sending_peer_on.lastCall.args[1];
+
+					on_message_handler(message);
+
+					s.assert.calledOnce(receiving_peer_send);
+					s.assert.calledWithExactly(receiving_peer_send, message);
+				}
+
+				// endpoint -> client
+				test_relaying(endpoint_socket_on, client_socket_send);
+
+				// client -> endpoint
+				test_relaying(client_socket_on, endpoint_socket_send);
+			},
+
 			'which frees up connected endpoint IDs': function (topic)
 			{
 				var lobby = topic.lobby;
@@ -364,13 +427,18 @@ vows.describe('A LobbyServer').addBatch
 				{
 					socket:
 					{
-						send: function () {}
+						send: function () {},
+						on: function () {}
 					}
 				};
 
 				var endpoint_getter = s.stub(lobby, 'endpoint').returns(endpoint);
 
-				var client_socket = { send: function () {} };
+				var client_socket =
+				{
+					send: function () {},
+					on: function () {}
+				};
 
 				lobby.on_connect_message(client_socket, { endpoint_id: subject_endpoint_id });
 

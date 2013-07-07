@@ -80,6 +80,22 @@ module.exports = function (di)
 		endpoint.socket.send(connected_event_message);
 		client_socket.send(connected_event_message);
 
+		endpoint.socket.on
+		(
+			'message', function (message)
+			{
+				client_socket.send(message);
+			}
+		);
+
+		client_socket.on
+		(
+			'message', function (message)
+			{
+				endpoint.socket.send(message);
+			}
+		);
+
 		delete this.endpoints[endpoint_id];
 	};
 
