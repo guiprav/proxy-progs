@@ -25,11 +25,11 @@ module.exports = function (di)
 		switch (message.command)
 		{
 			case 'announce':
-				this.on_announce_message();
+				this.on_announce_message(client_socket, message);
 				break;
 
 			case 'connect':
-				this.on_connect_message();
+				this.on_connect_message(client_socket, message);
 				break;
 
 			default:

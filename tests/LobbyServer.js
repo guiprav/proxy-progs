@@ -106,14 +106,17 @@ vows.describe('A LobbyServer').addBatch
 
 				var on_announce_message = s.stub(lobby, 'on_announce_message');
 
+				var client_socket = {};
+
 				var message = JSON.stringify
 				({
 					command: 'announce'
 				});
 
-				lobby.on_message(null, message);
+				lobby.on_message(client_socket, message);
 
 				s.assert.calledOnce(on_announce_message);
+				s.assert.calledWithExactly(on_announce_message, client_socket, s.match.object);
 
 				on_announce_message.restore();
 			},
@@ -124,14 +127,17 @@ vows.describe('A LobbyServer').addBatch
 
 				var on_connect_message = s.stub(lobby, 'on_connect_message');
 
+				var client_socket = {};
+
 				var message = JSON.stringify
 				({
 					command: 'connect'
 				});
 
-				lobby.on_message(null, message);
+				lobby.on_message(client_socket, message);
 
 				s.assert.calledOnce(on_connect_message);
+				s.assert.calledWithExactly(on_connect_message, client_socket, s.match.object);
 
 				on_connect_message.restore();
 			},
