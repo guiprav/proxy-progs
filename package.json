@@ -35,6 +35,7 @@
 	"devDependencies":
 	{
 		"vows": "0.7.x",
-		"supermock": "https://github.com/n2liquid/supermock/tarball/master"
+		"sinon": "1.7.x",
+		"sandboxed-module": "0.2.x"
 	}
 }
