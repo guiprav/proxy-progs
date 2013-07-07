@@ -126,13 +126,21 @@ vows.describe('A LobbyServer').addBatch
 
 				var message = JSON.stringify
 				({
-					command: 'announce'
+					command: 'announce',
+					endpoint_id: 'test'
 				});
 
 				lobby.on_message(client_socket, message);
 
 				s.assert.calledOnce(on_announce_message);
-				s.assert.calledWithExactly(on_announce_message, client_socket, s.match.object);
+
+				s.assert.calledWithExactly
+				(
+					on_announce_message,
+
+					client_socket,
+					s.match({ endpoint_id: 'test' })
+				);
 
 				on_announce_message.restore();
 			},
@@ -147,13 +155,21 @@ vows.describe('A LobbyServer').addBatch
 
 				var message = JSON.stringify
 				({
-					command: 'connect'
+					command: 'connect',
+					endpoint_id: 'test'
 				});
 
 				lobby.on_message(client_socket, message);
 
 				s.assert.calledOnce(on_connect_message);
-				s.assert.calledWithExactly(on_connect_message, client_socket, s.match.object);
+
+				s.assert.calledWithExactly
+				(
+					on_connect_message,
+
+					client_socket,
+					s.match({ endpoint_id: 'test' })
+				);
 
 				on_connect_message.restore();
 			},
