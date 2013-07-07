@@ -61,7 +61,7 @@ module.exports = function (di)
 
 		if (this.endpoints[endpoint_id] !== undefined)
 		{
-			client_socket.close
+			client_socket.send
 			(
 				JSON.stringify
 				({
@@ -69,8 +69,12 @@ module.exports = function (di)
 				})
 			);
 
+			client_socket.close();
+
 			log('Client tried to announce endpoint "' + endpoint_id + "', but it was already announced.");
 			log('Client disconnected.');
+
+			return;
 		}
 
 		this.endpoints[endpoint_id] = { socket: client_socket };

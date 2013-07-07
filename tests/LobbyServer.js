@@ -254,21 +254,32 @@ vows.describe('A LobbyServer').addBatch
 			{
 				var lobby = topic.lobby;
 
-				var close = s.stub();
-				var client_socket = { close: close };
+				var client_socket =
+				{
+					send: function () {},
+					close: function () {}
+				};
+
+				var send = s.stub(client_socket, 'send');
+				var close = s.stub(client_socket, 'close');
 
 				lobby.on_announce_message({}, { endpoint_id: 'test' });
 				lobby.on_announce_message(client_socket, { endpoint_id: 'test' });
 
-				s.assert.calledOnce(close);
+				s.assert.calledOnce(send);
 
 				s.assert.calledWithExactly
 				(
-					close, JSON.stringify
+					send, JSON.stringify
 					({
 						error: 'endpoint-already-announced'
 					})
 				);
+
+				s.assert.calledOnce(close);
+				s.assert.calledWithExactly(close);
+
+				assert(close.calledAfter(send), 'close must be called after send.');
 			}
 		},
 
