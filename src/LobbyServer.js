@@ -66,8 +66,19 @@ module.exports = function (di)
 		this.endpoints[message.endpoint_id] = {};
 	};
 
-	LobbyServer.prototype.on_connect_message = function ()
+	LobbyServer.prototype.on_connect_message = function (client_socket, message)
 	{
+		var endpoint_id = message.endpoint_id;
+
+		var endpoint = this.endpoint(endpoint_id);
+
+		var connected_event_message = JSON.stringify
+		({
+			'event': 'connected'
+		});
+
+		endpoint.socket.send(connected_event_message);
+		client_socket.send(connected_event_message);
 	};
 
 	return LobbyServer;

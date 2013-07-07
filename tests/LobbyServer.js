@@ -253,6 +253,75 @@ vows.describe('A LobbyServer').addBatch
 					})
 				);
 			}
+		},
+
+		'has a connect command handler':
+		{
+			topic: function ()
+			{
+				safe_topic_setup.call
+				(
+					this, function ()
+					{
+						var topic = new LobbyServerTopic();
+						topic.create_lobby();
+
+						// mock an endpoint announcement
+						topic.lobby.on_announce_message({}, { endpoint_id: 'test-1' });
+						topic.lobby.on_announce_message({}, { endpoint_id: 'test-2' });
+
+						return topic;
+					}
+				);
+			},
+
+			'which connects clients to announced endpoints': function (topic)
+			{
+				var lobby = topic.lobby;
+
+				var endpoint =
+				{
+					socket:
+					{
+						send: function () {}
+					}
+				};
+
+				var endpoint_send = s.stub(endpoint.socket, 'send');
+
+				var endpoint_getter = s.stub(lobby, 'endpoint').returns(endpoint);
+
+				var client_socket = { send: function () {} };
+
+				var client_send = s.stub(client_socket, 'send');
+
+				lobby.on_connect_message(client_socket, { endpoint_id: 'test-1' });
+
+				s.assert.calledOnce(endpoint_getter);
+				s.assert.calledWithExactly(endpoint_getter, 'test-1');
+
+				s.assert.calledOnce(endpoint_send);
+
+				s.assert.calledWithExactly
+				(
+					endpoint_send, JSON.stringify
+					({
+						'event': 'connected'
+					})
+				);
+
+				s.assert.calledOnce(client_send);
+
+				s.assert.calledWithExactly
+				(
+					client_send, JSON.stringify
+					({
+						'event': 'connected'
+					})
+				);
+
+				endpoint_getter.restore();
+			}
 		}
 	}
 ).export(module);
