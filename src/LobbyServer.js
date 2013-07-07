@@ -63,7 +63,7 @@ module.exports = function (di)
 			);
 		}
 
-		this.endpoints[message.endpoint_id] = {};
+		this.endpoints[message.endpoint_id] = { socket: client_socket };
 	};
 
 	LobbyServer.prototype.on_connect_message = function (client_socket, message)

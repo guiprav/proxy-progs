@@ -221,11 +221,19 @@ vows.describe('A LobbyServer').addBatch
 			{
 				var lobby = topic.lobby;
 
-				lobby.on_announce_message({}, { endpoint_id: 'test-a' });
-				lobby.on_announce_message({}, { endpoint_id: 'test-b' });
+				var socket_a = {};
+				var socket_b = {};
 
-				assert.isObject(lobby.endpoint('test-a'));
-				assert.isObject(lobby.endpoint('test-b'));
+				lobby.on_announce_message(socket_a, { endpoint_id: 'test-a' });
+				lobby.on_announce_message(socket_b, { endpoint_id: 'test-b' });
+
+				var endpoint_a = lobby.endpoint('test-a');
+				var endpoint_b = lobby.endpoint('test-b');
+
+				assert.isObject(endpoint_a);
+				assert.equal(endpoint_a.socket, socket_a);
+				assert.isObject(endpoint_b);
+				assert.equal(endpoint_b.socket, socket_b);
 			},
 
 			'whose getter throws if the ID is not announced': function (topic)
