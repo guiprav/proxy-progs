@@ -12,6 +12,8 @@ function SocketStub ()
 		send: s.stub(this, 'send'),
 		close: s.stub(this, 'close')
 	};
+
+	this.bound_to_peer = false;
 };
 
 SocketStub.prototype.on = nop();

@@ -373,6 +373,11 @@ vows.describe('A LobbyServer').addBatch
 					})
 				);
 
+				assert(endpoint.socket.bound_to_peer, 'endpoint.socket.bound_to_peer flag should be true.');
+				assert.equal(endpoint.socket.peer, client_socket, 'endpoint.socket.peer should be set to client_socket.');
+
+				assert(client_socket.bound_to_peer, 'client_socket.bound_to_peer flag should be true.');
+				assert.equal(endpoint.socket.peer, client_socket, 'client_socket.peer should be set to endpoint.socket.');
 			},
 
 			'which sets up message relaying for connected endpoints': function (topic)

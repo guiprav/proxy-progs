@@ -113,6 +113,12 @@ module.exports = function (di)
 			}
 		);
 
+		endpoint.socket.bound_to_peer = true;
+		endpoint.socket.peer = client_socket;
+
+		client_socket.bound_to_peer = true;
+		client_socket.peer = endpoint.socket;
+
 		delete this.endpoints[endpoint_id];
 
 		log('Endpoint "' + endpoint_id + '" bound to a client.');
