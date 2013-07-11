@@ -126,6 +126,10 @@ module.exports = function (di)
 
 	LobbyServer.prototype.on_socket_close = function (client_socket)
 	{
+		if (client_socket.bound_to_peer)
+		{
+			client_socket.peer.close();
+		}
 	};
 
 	return LobbyServer;
