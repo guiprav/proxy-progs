@@ -323,6 +323,8 @@ vows.describe('A LobbyServer').addBatch
 				s.assert.calledOnce(endpoint_getter);
 				s.assert.calledWithExactly(endpoint_getter, endpoint_id);
 
+				endpoint_getter.restore();
+
 				s.assert.calledOnce(endpoint_send);
 
 				s.assert.calledWithExactly
@@ -343,7 +345,6 @@ vows.describe('A LobbyServer').addBatch
 					})
 				);
 
-				endpoint_getter.restore();
 			},
 
 			'which sets up message relaying for connected endpoints': function (topic)
