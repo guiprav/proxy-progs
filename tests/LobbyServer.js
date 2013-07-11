@@ -98,6 +98,34 @@ vows.describe('A LobbyServer').addBatch
 				s.assert.calledWithExactly(on_message, client_socket, message);
 
 				on_message.restore();
+			},
+
+			'which sets up the disconnection handler': function (topic)
+			{
+				var lobby = topic.lobby;
+
+				var on_socket_close = s.stub(lobby, 'on_socket_close');
+
+				// test 'on' handler registration
+				var client_socket = new SocketStub();
+				var on = client_socket.stubs.on;
+
+				lobby.on_connect(client_socket);
+
+				s.assert.calledOnce(on);
+				s.assert.calledWithExactly(on, 'close', s.match.func);
+
+				// test handler call to lobby.on_message
+				var handler = on.lastCall.args[1];
+
+				handler();
+
+				s.assert.calledOnce(on_socket_close);
+
+				// test handler call forwards right arguments
+				s.assert.calledWithExactly(on_socket_close, client_socket);
+
+				on_socket_close.restore();
 			}
 		},
 
@@ -233,6 +261,7 @@ vows.describe('A LobbyServer').addBatch
 
 				assert.isObject(endpoint_a);
 				assert.equal(endpoint_socket_a, client_socket_a);
+
 				assert.isObject(endpoint_b);
 				assert.equal(endpoint_socket_b, client_socket_b);
 			},
@@ -322,6 +351,8 @@ vows.describe('A LobbyServer').addBatch
 				s.assert.calledOnce(endpoint_getter);
 				s.assert.calledWithExactly(endpoint_getter, endpoint_id);
 
+				endpoint_getter.restore();
+
 				s.assert.calledOnce(endpoint_send);
 
 				s.assert.calledWithExactly
@@ -342,7 +373,11 @@ vows.describe('A LobbyServer').addBatch
 					})
 				);
 
-				endpoint_getter.restore();
+				assert(endpoint.socket.bound_to_peer, 'endpoint.socket.bound_to_peer flag should be true.');
+				assert.equal(endpoint.socket.peer, client_socket, 'endpoint.socket.peer should be set to client_socket.');
+
+				assert(client_socket.bound_to_peer, 'client_socket.bound_to_peer flag should be true.');
+				assert.equal(endpoint.socket.peer, client_socket, 'client_socket.peer should be set to endpoint.socket.');
 			},
 
 			'which sets up message relaying for connected endpoints': function (topic)
@@ -430,6 +465,46 @@ vows.describe('A LobbyServer').addBatch
 
 					'Endpoint is still announced.'
 				);
+			}
+		},
+
+		'has a disconnection handler':
+		{
+			topic: function ()
+			{
+				safe_topic_setup.call
+				(
+					this, function ()
+					{
+						var topic = new LobbyServerTopic();
+						topic.create_lobby();
+
+						return topic;
+					}
+				);
+			},
+
+			'which disconnects bound peers': function (topic)
+			{
+				var lobby = topic.lobby;
+
+				// test client with no bound peer
+				var client_socket = new SocketStub();
+				client_socket.peer = new SocketStub();
+				client_socket.bound_to_peer = false;
+
+				var peer_close = client_socket.peer.stubs.close;
+
+				lobby.on_socket_close(client_socket);
+
+				s.assert.notCalled(peer_close);
+
+				// test client with bound peer
+				client_socket.bound_to_peer = true;
+
+				lobby.on_socket_close(client_socket);
+
+				s.assert.calledOnce(peer_close);
 			}
 		}
 	}
