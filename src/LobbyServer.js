@@ -31,6 +31,7 @@ module.exports = function (di)
 	LobbyServer.prototype.on_connect = function (client_socket)
 	{
 		client_socket.once('message', this.on_message.bind(this, client_socket));
+		client_socket.on('close', this.on_socket_close.bind(this, client_socket));
 
 		log('Client connected.');
 	};
@@ -115,6 +116,10 @@ module.exports = function (di)
 		delete this.endpoints[endpoint_id];
 
 		log('Endpoint "' + endpoint_id + '" bound to a client.');
+	};
+
+	LobbyServer.prototype.on_socket_close = function (client_socket)
+	{
 	};
 
 	return LobbyServer;

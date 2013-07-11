@@ -98,6 +98,34 @@ vows.describe('A LobbyServer').addBatch
 				s.assert.calledWithExactly(on_message, client_socket, message);
 
 				on_message.restore();
+			},
+
+			'which sets up the disconnection handler': function (topic)
+			{
+				var lobby = topic.lobby;
+
+				var on_socket_close = s.stub(lobby, 'on_socket_close');
+
+				// test 'on' handler registration
+				var client_socket = new SocketStub();
+				var on = client_socket.stubs.on;
+
+				lobby.on_connect(client_socket);
+
+				s.assert.calledOnce(on);
+				s.assert.calledWithExactly(on, 'close', s.match.func);
+
+				// test handler call to lobby.on_message
+				var handler = on.lastCall.args[1];
+
+				handler();
+
+				s.assert.calledOnce(on_socket_close);
+
+				// test handler call forwards right arguments
+				s.assert.calledWithExactly(on_socket_close, client_socket);
+
+				on_socket_close.restore();
 			}
 		},
 
