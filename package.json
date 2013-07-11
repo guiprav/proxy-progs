@@ -19,12 +19,12 @@
 
 	"engines":
 	{
-		"node": ">=0.10"
+		"node": ">=0.6"
 	},
 
 	"scripts":
 	{
-		"test": "vows tests/* --spec"
+		"test": "vows tests/*.js --spec"
 	},
 
 	"dependencies":
