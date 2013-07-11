@@ -24,7 +24,7 @@
 
 	"scripts":
 	{
-		"test": "vows tests/* --spec"
+		"test": "vows tests/*.js --spec"
 	},
 
 	"dependencies":
