@@ -233,6 +233,7 @@ vows.describe('A LobbyServer').addBatch
 
 				assert.isObject(endpoint_a);
 				assert.equal(endpoint_socket_a, client_socket_a);
+
 				assert.isObject(endpoint_b);
 				assert.equal(endpoint_socket_b, client_socket_b);
 			},
