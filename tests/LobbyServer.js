@@ -5,6 +5,8 @@ var vows = require('vows');
 var s = require('sinon');
 
 var LobbyServerTopic = require('./LobbyServer/LobbyServerTopic');
+var EndpointStub = require('./common/EndpointStub');
+var SocketStub = require('./common/SocketStub');
 var safe_topic_setup = require('./common/safe_topic_setup');
 
 vows.describe('A LobbyServer').addBatch
@@ -76,13 +78,8 @@ vows.describe('A LobbyServer').addBatch
 				var on_message = s.stub(lobby, 'on_message');
 
 				// test 'once' handler registration
-				var once = s.stub();
-
-				var client_socket =
-				{
-					once: once,
-					close: function () {}
-				};
+				var client_socket = new SocketStub();
+				var once = client_socket.stubs.once;
 
 				lobby.on_connect(client_socket);
 
@@ -131,7 +128,7 @@ vows.describe('A LobbyServer').addBatch
 
 				var on_announce_message = s.stub(lobby, 'on_announce_message');
 
-				var client_socket = {};
+				var client_socket = new SocketStub();
 
 				var message = JSON.stringify
 				({
@@ -160,7 +157,7 @@ vows.describe('A LobbyServer').addBatch
 
 				var on_connect_message = s.stub(lobby, 'on_connect_message');
 
-				var client_socket = {};
+				var client_socket = new SocketStub();
 
 				var message = JSON.stringify
 				({
@@ -187,8 +184,8 @@ vows.describe('A LobbyServer').addBatch
 			{
 				var lobby = topic.lobby;
 
-				var close = s.stub();
-				var client_socket = { close: close };
+				var client_socket = new SocketStub();
+				var close = client_socket.stubs.close;
 
 				lobby.on_message
 				(
@@ -222,19 +219,22 @@ vows.describe('A LobbyServer').addBatch
 			{
 				var lobby = topic.lobby;
 
-				var socket_a = {};
-				var socket_b = {};
+				var client_socket_a = new SocketStub();
+				var client_socket_b = new SocketStub();
 
-				lobby.on_announce_message(socket_a, { endpoint_id: 'test-a' });
-				lobby.on_announce_message(socket_b, { endpoint_id: 'test-b' });
+				lobby.on_announce_message(client_socket_a, { endpoint_id: 'test-a' });
+				lobby.on_announce_message(client_socket_b, { endpoint_id: 'test-b' });
 
 				var endpoint_a = lobby.endpoint('test-a');
 				var endpoint_b = lobby.endpoint('test-b');
 
+				var endpoint_socket_a = endpoint_a.socket;
+				var endpoint_socket_b = endpoint_b.socket;
+
 				assert.isObject(endpoint_a);
-				assert.equal(endpoint_a.socket, socket_a);
+				assert.equal(endpoint_socket_a, client_socket_a);
 				assert.isObject(endpoint_b);
-				assert.equal(endpoint_b.socket, socket_b);
+				assert.equal(endpoint_socket_b, client_socket_b);
 			},
 
 			'whose getter throws if the ID is not announced': function (topic)
@@ -254,32 +254,29 @@ vows.describe('A LobbyServer').addBatch
 			{
 				var lobby = topic.lobby;
 
-				var client_socket =
-				{
-					send: function () {},
-					close: function () {}
-				};
+				var client_socket_a = new SocketStub();
+				var client_socket_b = new SocketStub();
 
-				var send = s.stub(client_socket, 'send');
-				var close = s.stub(client_socket, 'close');
+				var send_b = client_socket_b.stubs.send;
+				var close_b = client_socket_b.stubs.close;
 
-				lobby.on_announce_message({}, { endpoint_id: 'test' });
-				lobby.on_announce_message(client_socket, { endpoint_id: 'test' });
+				lobby.on_announce_message(client_socket_a, { endpoint_id: 'test' });
+				lobby.on_announce_message(client_socket_b, { endpoint_id: 'test' });
 
-				s.assert.calledOnce(send);
+				s.assert.calledOnce(send_b);
 
 				s.assert.calledWithExactly
 				(
-					send, JSON.stringify
+					send_b, JSON.stringify
 					({
 						error: 'endpoint-already-announced'
 					})
 				);
 
-				s.assert.calledOnce(close);
-				s.assert.calledWithExactly(close);
+				s.assert.calledOnce(close_b);
+				s.assert.calledWithExactly(close_b);
 
-				assert(close.calledAfter(send), 'close must be called after send.');
+				assert(close_b.calledAfter(send_b), 'close must be called after send.');
 			}
 		},
 
@@ -295,9 +292,9 @@ vows.describe('A LobbyServer').addBatch
 						topic.create_lobby();
 
 						// mock an endpoint announcement
-						topic.lobby.on_announce_message({}, { endpoint_id: 'prepared-1' });
-						topic.lobby.on_announce_message({}, { endpoint_id: 'prepared-2' });
-						topic.lobby.on_announce_message({}, { endpoint_id: 'prepared-3' });
+						topic.lobby.on_announce_message(new SocketStub(), { endpoint_id: 'prepared-1' });
+						topic.lobby.on_announce_message(new SocketStub(), { endpoint_id: 'prepared-2' });
+						topic.lobby.on_announce_message(new SocketStub(), { endpoint_id: 'prepared-3' });
 
 						return topic;
 					}
@@ -310,26 +307,15 @@ vows.describe('A LobbyServer').addBatch
 
 				var endpoint_id = 'prepared-1';
 
-				var endpoint =
-				{
-					socket:
-					{
-						send: function () {},
-						on: function () {}
-					}
-				};
+				var endpoint = new EndpointStub();
 
-				var endpoint_send = s.stub(endpoint.socket, 'send');
+				var endpoint_send = endpoint.socket.stubs.send;
 
 				var endpoint_getter = s.stub(lobby, 'endpoint').returns(endpoint);
 
-				var client_socket =
-				{
-					send: function () {},
-					on: function () {}
-				};
+				var client_socket = new SocketStub();
 
-				var client_send = s.stub(client_socket, 'send');
+				var client_send = client_socket.stubs.send;
 
 				lobby.on_connect_message(client_socket, { endpoint_id: endpoint_id });
 
@@ -363,33 +349,21 @@ vows.describe('A LobbyServer').addBatch
 			{
 				var lobby = topic.lobby;
 
-				var endpoint =
-				{
-					socket:
-					{
-						send: function () {},
-						on: function () {}
-					}
-				};
+				var endpoint = new EndpointStub();
 
-				var endpoint_socket_send = s.stub(endpoint.socket, 'send');
-				var endpoint_socket_on = s.stub(endpoint.socket, 'on');
+				var endpoint_socket_send = endpoint.socket.stubs.send;
+				var endpoint_socket_on = endpoint.socket.stubs.on;
 
-				var proper_endpoint_getter = lobby.endpoint;
-				lobby.endpoint = function () { return endpoint; };
+				s.stub(lobby, 'endpoint').returns(endpoint);
 
-				var client_socket =
-				{
-					send: function () {},
-					on: function () {}
-				};
+				var client_socket = new SocketStub();
 
-				var client_socket_send = s.stub(client_socket, 'send');
-				var client_socket_on = s.stub(client_socket, 'on');
+				var client_socket_send = client_socket.stubs.send;
+				var client_socket_on = client_socket.stubs.on;
 
 				lobby.on_connect_message(client_socket, { endpoint_id: 'prepared-2' });
 
-				lobby.endpoint = proper_endpoint_getter;
+				lobby.endpoint.restore();
 
 				// reset spy state, we don't care about previous calls
 				client_socket_send.reset();
@@ -435,22 +409,11 @@ vows.describe('A LobbyServer').addBatch
 					'Endpoint is not announced.'
 				);
 
-				var endpoint =
-				{
-					socket:
-					{
-						send: function () {},
-						on: function () {}
-					}
-				};
+				var endpoint = new EndpointStub();
 
 				var endpoint_getter = s.stub(lobby, 'endpoint').returns(endpoint);
 
-				var client_socket =
-				{
-					send: function () {},
-					on: function () {}
-				};
+				var client_socket = new SocketStub();
 
 				lobby.on_connect_message(client_socket, { endpoint_id: subject_endpoint_id });
 

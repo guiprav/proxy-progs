@@ -3,6 +3,7 @@
 var util = require('util');
 var s = require('sinon');
 var Topic = require('../common/Topic');
+var SocketStub = require('../common/SocketStub');
 var require_inject_create = require('../common/require_inject_create');
 
 function LobbyServerTopic ()
@@ -13,10 +14,7 @@ function LobbyServerTopic ()
 	this.di.log = function () {};
 
 	// basic stubbing of WS module
-	this.server_socket =
-	{
-		on: s.stub()
-	};
+	this.server_socket = new SocketStub();
 
 	this.di.WS =
 	{
