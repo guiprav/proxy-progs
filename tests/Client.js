@@ -21,17 +21,17 @@ vows.describe('A Client').addBatch
 
 			'is not connected to any peer': function (t)
 			{
-				assert.deepEqual(t.connected_to_peer, false, '`connected_to_peer` should be false.');
-				assert.deepEqual(t.peer, null, '`peer` should be null.');
+				assert.isFalse(t.connected_to_peer, '`connected_to_peer` should be false.');
+				assert.isNull(t.peer, '`peer` should be null.');
 			},
 
 			'has a socket object': function (t)
 			{
-				assert.typeOf(t.socket, 'object');
-				assert.typeOf(t.socket.on, 'function', '`socket` should have function "on".');
-				assert.typeOf(t.socket.once, 'function', '`socket` should have function "once".');
-				assert.typeOf(t.socket.send, 'function', '`socket` should have function "send".');
-				assert.typeOf(t.socket.close, 'function', '`socket` should have function "close".');
+				assert.isObject(t.socket);
+				assert.isFunction(t.socket.on, '`socket` should have function "on".');
+				assert.isFunction(t.socket.once, '`socket` should have function "once".');
+				assert.isFunction(t.socket.send, '`socket` should have function "send".');
+				assert.isFunction(t.socket.close, '`socket` should have function "close".');
 			}
 		},
 
@@ -41,13 +41,13 @@ vows.describe('A Client').addBatch
 
 			'starting on state "initial"': function (t)
 			{
-				assert.deepEqual(t.state, 'initial', '`state` should be "initial".');
+				assert.strictEqual(t.state, 'initial', '`state` should be "initial".');
 			},
 
 			'which can go to state "announced"': function (t)
 			{
 				t.goAnnounced();
-				assert.deepEqual(t.state, 'announced', '`state` should be "announced".');
+				assert.strictEqual(t.state, 'announced', '`state` should be "announced".');
 
 				// TODO: Assert goAnnounced is undefined now
 				// TODO: Make each state its own context or batch
