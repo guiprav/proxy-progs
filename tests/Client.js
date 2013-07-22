@@ -28,6 +28,10 @@ vows.describe('A Client').addBatch
 			'has a socket object': function (t)
 			{
 				assert.typeOf(t.socket, 'object');
+				assert.typeOf(t.socket.on, 'function', '`socket` must have function "on".');
+				assert.typeOf(t.socket.once, 'function', '`socket` must have function "once".');
+				assert.typeOf(t.socket.send, 'function', '`socket` must have function "send".');
+				assert.typeOf(t.socket.close, 'function', '`socket` must have function "close".');
 			}
 		},
 
