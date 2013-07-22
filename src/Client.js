@@ -15,4 +15,9 @@ function Client ()
 	};
 }
 
+Client.prototype.goAnnounced = function ()
+{
+	this.state = 'announced';
+};
+
 module.exports = Client;

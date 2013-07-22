@@ -42,6 +42,15 @@ vows.describe('A Client').addBatch
 			'starting on state "initial"': function (t)
 			{
 				assert.deepEqual(t.state, 'initial', '`state` should be "initial".');
+			},
+
+			'which can go to state "announced"': function (t)
+			{
+				t.goAnnounced();
+				assert.deepEqual(t.state, 'announced', '`state` should be "announced".');
+
+				// TODO: Assert goAnnounced is undefined now
+				// TODO: Make each state its own context or batch
 			}
 		}
 	}
