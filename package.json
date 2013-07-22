@@ -29,7 +29,8 @@
 
 	"dependencies":
 	{
-		"ws": "0.4.x"
+		"ws": "0.4.x",
+		"xdy": "https://github.com/n2liquid/xdy/tarball/develop"
 	},
 
 	"devDependencies":
