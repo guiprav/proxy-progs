@@ -2,6 +2,7 @@
 
 function Client ()
 {
+	this.state = 'initial';
 }
 
 module.exports = Client;
