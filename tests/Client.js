@@ -21,17 +21,17 @@ vows.describe('A Client').addBatch
 
 			'is not connected to any peer': function (t)
 			{
-				assert.deepEqual(t.connected_to_peer, false, '`connected_to_peer` must be false.');
-				assert.deepEqual(t.peer, null, '`peer` must be null.');
+				assert.deepEqual(t.connected_to_peer, false, '`connected_to_peer` should be false.');
+				assert.deepEqual(t.peer, null, '`peer` should be null.');
 			},
 
 			'has a socket object': function (t)
 			{
 				assert.typeOf(t.socket, 'object');
-				assert.typeOf(t.socket.on, 'function', '`socket` must have function "on".');
-				assert.typeOf(t.socket.once, 'function', '`socket` must have function "once".');
-				assert.typeOf(t.socket.send, 'function', '`socket` must have function "send".');
-				assert.typeOf(t.socket.close, 'function', '`socket` must have function "close".');
+				assert.typeOf(t.socket.on, 'function', '`socket` should have function "on".');
+				assert.typeOf(t.socket.once, 'function', '`socket` should have function "once".');
+				assert.typeOf(t.socket.send, 'function', '`socket` should have function "send".');
+				assert.typeOf(t.socket.close, 'function', '`socket` should have function "close".');
 			}
 		},
 
@@ -41,7 +41,7 @@ vows.describe('A Client').addBatch
 
 			'starting on state "initial"': function (t)
 			{
-				assert.deepEqual(t.state, 'initial', '`state` must be "initial".');
+				assert.deepEqual(t.state, 'initial', '`state` should be "initial".');
 			}
 		}
 	}
